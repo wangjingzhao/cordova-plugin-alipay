@@ -15,9 +15,24 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AliPay">
-                <param name="android-package" value="org.easycloud.alipay"/>
+                <param name="android-package" value="org.easycloud.alipay.AliPayPlugin"/>
                 <param name="onload" value="true"/>
             </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <activity
+                    android:name="com.alipay.sdk.app.H5PayActivity"
+                    android:configChanges="orientation|keyboardHidden|navigation"
+                    android:exported="false"
+                    android:screenOrientation="behind">
+            </activity>
+            <activity
+                    android:name="com.alipay.sdk.auth.AuthActivity"
+                    android:configChanges="orientation|keyboardHidden|navigation"
+                    android:exported="false"
+                    android:screenOrientation="behind">
+            </activity>
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest">

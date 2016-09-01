@@ -9,6 +9,7 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <AlipaySDK/AlipaySDK.h>
+#import "Order.h"
 
 @interface AliPayPlugin : CDVPlugin {}
 
