@@ -7,10 +7,13 @@
 //
 
 #import <Cordova/CDV.h>
+#import <Cordova/CDVPlugin.h>
+#import <AlipaySDK/AlipaySDK.h>
 
-@interface AlipayPlugin : CDVPlugin
+@interface AliPayPlugin : CDVPlugin {}
 
 @property(nonatomic,strong)NSString *partner;
 
-@end
+- (void)pay:(CDVInvokedUrlCommand*)command;
 
+@end
