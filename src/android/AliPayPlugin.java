@@ -7,9 +7,12 @@
 
 package org.easycloud.alipay;
 
+import com.alipay.sdk.app.PayTask;
 import org.apache.cordova.*;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.util.Map;
 
 public class AliPayPlugin extends CordovaPlugin {
     private static String TAG = "AliPayPlugin";
@@ -42,12 +45,27 @@ public class AliPayPlugin extends CordovaPlugin {
         LOG.d(TAG, "AliPayPlugin action:" + action);
         System.out.println("AliPayPlugin action:" + action);
         if (action.equals(PAY)) {
-            //this.beep(args.getLong(0));
-            //callbackContext.success();
+            pay();
             return true;
         }
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
+    private void pay() {
+        String sign = "aa";
+        final String orderInfo = "orderParam" + "&" + sign;
 
+        Runnable payRunnable = new Runnable() {
+            @Override
+            public void run() {
+                PayTask alipay = new PayTask(cordova.getActivity());
+                Map<String, String> result = alipay.payV2(orderInfo, true);
+                LOG.d(TAG, "AliPayPlugin result:" + result);
+                System.out.println("AliPayPlugin result:" + result);
+            }
+        };
+
+        Thread payThread = new Thread(payRunnable);
+        payThread.start();
+    }
 }
