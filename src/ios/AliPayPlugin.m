@@ -15,110 +15,76 @@
 @implementation AliPayPlugin
 
 -(void)pluginInitialize {
-    CDVViewController *viewController = (CDVViewController *)self.viewController;
-    self.partner = [viewController.settings objectForKey:@"partner"];
+
 }
 
 - (void)pay:(CDVInvokedUrlCommand*)command {
 
-    NSString *appID = @"2016083001825567";
-    NSString *signed_String  = @"aaa";
+    NSString *appScheme = @"com.easycloud.skateboard";
 
-    //将商品信息赋予AlixPayOrder的成员变量
-    Order* order = [Order new];
+    self.currentCallbackId = command.callbackId;
 
-    // NOTE: app_id设置
-    order.app_id = appID;
+    NSMutableDictionary *args = [command argumentAtIndex:0];
+    NSLog(@"%@",args);
 
-    // NOTE: 支付接口名称
-    order.method = @"alipay.trade.app.pay";
-
-    // NOTE: 参数编码格式
-    order.charset = @"utf-8";
-
-    // NOTE: 当前时间点
-    NSDateFormatter* formatter = [NSDateFormatter new];
-    [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-    order.timestamp = [formatter stringFromDate:[NSDate date]];
-
-    // NOTE: 支付版本
-    order.version = @"1.0";
-
-    // NOTE: sign_type设置
-    order.sign_type = @"RSA";
-
-    // NOTE: 商品数据
-    order.biz_content = [BizContent new];
-    order.biz_content.body = @"我是测试数据";
-    order.biz_content.subject = @"1";
-    order.biz_content.out_trade_no = [self generateTradeNO]; //订单ID（由商家自行制定）
-    order.biz_content.timeout_express = @"30m"; //超时时间设置
-    order.biz_content.total_amount = [NSString stringWithFormat:@"%.2f", 0.01]; //商品价格
-
-    //将商品信息拼接成字符串
-    NSString *orderInfo = [order orderInfoEncoded:NO];
-    NSString *orderInfoEncoded = [order orderInfoEncoded:YES];
-    NSLog(@"orderSpec = %@",orderInfo);
-
-    // NOTE: 获取私钥并将商户信息签名，外部商户的加签过程请务必放在服务端，防止公私钥数据泄露；
-    //       需要遵循RSA签名规范，并将签名字符串base64编码和UrlEncode
-    //id<DataSigner> signer = CreateRSADataSigner(privateKey);
-    //NSString *signedString = [signer signString:orderInfo];
-    NSString *signedString = signed_String;
+    NSString *orderString= [args objectForKey:@"order"];
 
     // NOTE: 如果加签成功，则继续执行支付
-    if (signedString != nil) {
+    if (orderString != nil) {
         //应用注册scheme,在AliSDKDemo-Info.plist定义URL types
-        NSString *appScheme = @"com.easycloud.skateboard";
-
-        // NOTE: 将签名成功字符串格式化为订单字符串,请严格按照该格式
-        NSString *orderString = [NSString stringWithFormat:@"%@&sign=%@", orderInfoEncoded, signedString];
 
         // NOTE: 调用支付结果开始支付
+        //        [[AlipaySDK defaultService] payOrder:orderString fromScheme:appScheme callback:^(NSDictionary *resultDic) {
+        //            NSLog(@"reslut = %@",resultDic);
+        //        }];
         [[AlipaySDK defaultService] payOrder:orderString fromScheme:appScheme callback:^(NSDictionary *resultDic) {
-            NSLog(@"reslut = %@",resultDic);
+            if ([[resultDic objectForKey:@"resultStatus"]  isEqual: @"9000"]) {
+                [self successWithCallbackID:self.currentCallbackId messageAsDictionary:resultDic];
+            } else {
+                [self failWithCallbackID:self.currentCallbackId messageAsDictionary:resultDic];
+            }
+            NSLog(@"pay reslut = %@",resultDic);
         }];
     }
+}
+
+- (void)successWithCallbackID:(NSString *)callbackID messageAsDictionary:(NSDictionary *)message
+{
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:callbackID];
+}
+
+- (void)failWithCallbackID:(NSString *)callbackID messageAsDictionary:(NSDictionary *)message
+{
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:message];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:callbackID];
 }
 
 - (void)handleOpenURL:(NSNotification *)notification {
     NSURL* url = [notification object];
-//    if ([url isKindOfClass:[NSURL class]] && [url.scheme isEqualToString:[NSString stringWithFormat:@"a%@", self.partner]])
-//    {
-//        [[AlipaySDK defaultService] processOrderWithPaymentResult:url standbyCallback:^(NSDictionary *resultDic) {
-//            if ([[resultDic objectForKey:@"resultStatus"]  isEqual: @"9000"]) {
-//
-//            } else {
-//
-//            }
-//        }];
-//    }
-
     if ([url.host isEqualToString:@"safepay"]) {
         //跳转支付宝钱包进行支付，处理支付结果
         [[AlipaySDK defaultService] processOrderWithPaymentResult:url standbyCallback:^(NSDictionary *resultDic) {
-            NSLog(@"result = %@",resultDic);
+            if ([[resultDic objectForKey:@"resultStatus"]  isEqual: @"9000"]) {
+                [self successWithCallbackID:self.currentCallbackId messageAsDictionary:resultDic];
+            } else {
+                [self failWithCallbackID:self.currentCallbackId messageAsDictionary:resultDic];
+            }
+            NSLog(@"handleOpenURL result = %@",resultDic);
         }];
     }
 }
 
-/**
- * 用来测试的方法
- */
-- (NSString *)generateTradeNO
+- (void)successWithCallbackID:(NSString *)callbackID withMessage:(NSString *)message
 {
-    static int kNumber = 15;
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:callbackID];
+}
 
-    NSString *sourceStr = @"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    NSMutableString *resultStr = [[NSMutableString alloc] init];
-    srand((unsigned)time(0));
-    for (int i = 0; i < kNumber; i++)
-    {
-        unsigned index = rand() % [sourceStr length];
-        NSString *oneStr = [sourceStr substringWithRange:NSMakeRange(index, 1)];
-        [resultStr appendString:oneStr];
-    }
-    return resultStr;
+- (void)failWithCallbackID:(NSString *)callbackID withMessage:(NSString *)message
+{
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:message];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:callbackID];
 }
 
 @end

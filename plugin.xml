@@ -73,8 +73,5 @@
 
         <header-file src="src/ios/AliPayPlugin.h"/>
         <source-file src="src/ios/AliPayPlugin.m"/>
-
-        <header-file src="src/ios/Order.h"/>
-        <source-file src="src/ios/Order.m"/>
     </platform>
 </plugin>

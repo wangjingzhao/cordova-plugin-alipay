@@ -9,11 +9,10 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <AlipaySDK/AlipaySDK.h>
-#import "Order.h"
 
 @interface AliPayPlugin : CDVPlugin {}
 
-@property(nonatomic,strong)NSString *partner;
+@property(nonatomic,strong)NSString *currentCallbackId;
 
 - (void)pay:(CDVInvokedUrlCommand*)command;
 
