@@ -7,10 +7,12 @@
 
 package org.easycloud.alipay;
 
+import android.text.TextUtils;
 import com.alipay.sdk.app.PayTask;
 import org.apache.cordova.*;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Map;
 
@@ -18,21 +20,6 @@ public class AliPayPlugin extends CordovaPlugin {
     private static String TAG = "AliPayPlugin";
 
     private static final String PAY = "pay";
-
-    //商户PID
-    private String partner = "";
-    //商户收款账号
-    private String seller = "";
-    //商户私钥，pkcs8格式
-    private String privateKey = "";
-
-    @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
-        // your init code here
-        LOG.d(TAG, "AliPayPlugin initialize");
-        System.out.println("AliPayPlugin initialize");
-    }
 
     /**
      * @param action          The action to execute.
@@ -43,25 +30,40 @@ public class AliPayPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         LOG.d(TAG, "AliPayPlugin action:" + action);
-        System.out.println("AliPayPlugin action:" + action);
         if (action.equals(PAY)) {
-            pay();
+            JSONObject arguments = args.getJSONObject(0);
+            String orderString = arguments.getString("order");
+            this.pay(orderString, callbackContext);
             return true;
         }
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private void pay() {
-        String sign = "aa";
-        final String orderInfo = "orderParam" + "&" + sign;
+    private void pay(String order, final CallbackContext callbackContext) {
+        LOG.d(TAG, "AliPayPlugin pay");
 
+        final String orderString = order;
         Runnable payRunnable = new Runnable() {
             @Override
             public void run() {
                 PayTask alipay = new PayTask(cordova.getActivity());
-                Map<String, String> result = alipay.payV2(orderInfo, true);
-                LOG.d(TAG, "AliPayPlugin result:" + result);
-                System.out.println("AliPayPlugin result:" + result);
+                Map<String, String> result = alipay.payV2(orderString, true);
+
+                LOG.d(TAG, "result:" + result.toString());
+
+                JSONObject json = new JSONObject(result);
+
+                if (TextUtils.equals(result.get("resultStatus"), "9000")) {
+                    callbackContext.success(json);
+                } else {
+                    // 判断resultStatus 为非“9000”则代表可能支付失败
+                    // “8000”代表支付结果因为支付渠道原因或者系统原因还在等待支付结果确认，最终交易是否成功以服务端异步通知为准（小概率状态）
+                    if (TextUtils.equals(result.get("resultStatus"), "8000")) {
+                        callbackContext.success(json);
+                    } else {
+                        callbackContext.error(json);
+                    }
+                }
             }
         };
 
