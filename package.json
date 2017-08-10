@@ -1,0 +1,29 @@
+{
+  "name": "cordova-plugin-alipay",
+  "version": "0.0.1",
+  "description": "支付宝支付插件",
+  "cordova": {
+    "id": "cordova-plugin-alipay",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuoDapeng/cordova-plugin-alipay.git"
+  },
+  "keywords": [
+    "alipay",
+    "payment",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/GuoDapeng/cordova-plugin-alipay/issues"
+  },
+  "homepage": "https://github.com/GuoDapeng/cordova-plugin-alipay#readme"
+}

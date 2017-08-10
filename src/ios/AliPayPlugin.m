@@ -20,7 +20,7 @@
 
 - (void)pay:(CDVInvokedUrlCommand*)command {
 
-    NSString *appScheme = @"com.easycloud.skateboard";
+    NSString *appScheme = @"com.your.package";
 
     self.currentCallbackId = command.callbackId;
 
@@ -88,4 +88,3 @@
 }
 
 @end
-
