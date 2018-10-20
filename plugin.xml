@@ -43,7 +43,7 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
         </config-file>
 
-        <source-file src="src/android/libs/alipaySdk-20160825.jar" target-dir="app/src/main/libs" framework="true" />
+        <source-file src="src/android/libs/alipaySdk-20160825.jar" target-dir="src/com/alipay/" framework="true" />
 
         <source-file src="src/android/AliPayPlugin.java" target-dir="src/org/easycloud/alipay"/>
     </platform>
